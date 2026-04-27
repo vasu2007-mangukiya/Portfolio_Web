@@ -360,7 +360,8 @@
             submitBtn.disabled = true;
 
             try {
-                const res = await fetch('/api/contact', {
+                // Using absolute URL in case the file is opened directly
+                const res = await fetch('http://localhost:3000/api/contact', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, message })
@@ -373,6 +374,7 @@
                     feedback.textContent = 'Message sent successfully!';
                     feedback.style.color = '#34d399';
                     feedback.style.background = 'rgba(52,211,153,0.1)';
+                    alert('Message sent successfully!'); // Explicit popup feedback
                     form.reset();
                 } else {
                     feedback.textContent = data.error || 'Failed to send message.';

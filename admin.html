@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet" />
+    <style>
+        :root{
+            --bg:#07090c;
+            --text:#f7f9fb;
+            --muted:rgba(232,240,248,0.64);
+            --accent:#7dd3fc;
+            --line:rgba(255,255,255,0.12);
+        }
+        body{
+            background:radial-gradient(1100px 500px at 15% 0%, rgba(125,211,252,0.11), transparent 62%),linear-gradient(160deg, #06070a 0%, #0a0d11 46%, #07090c 100%);
+            color:var(--text);
+            font-family:'DM Sans',sans-serif;
+            margin:0; padding:40px; min-height:100vh;
+        }
+        h1{font-family:'Syne',sans-serif; color:var(--accent); font-size:32px; margin-bottom:10px;}
+        p.sub {color:var(--muted); margin-top:0; margin-bottom:40px;}
+        .container {max-width:800px; margin:0 auto;}
+        
+        .message-card {
+            background:linear-gradient(160deg, rgba(255,255,255,0.055), rgba(255,255,255,0.022));
+            border:1px solid var(--line);
+            border-radius:16px;
+            padding:20px;
+            margin-bottom:20px;
+            box-shadow:0 18px 40px rgba(0,0,0,0.33);
+        }
+        .header {display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:12px;}
+        .name {font-family:'Syne',sans-serif; font-weight:700; font-size:18px;}
+        .email {color:var(--accent); font-size:14px;}
+        .date {font-size:12px; color:var(--muted);}
+        .body {font-size:14px; line-height:1.6;}
+        
+        #no-messages {display:none; text-align:center; color:var(--muted); padding:40px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inbox</h1>
+        <p class="sub">All contact messages received from your portfolio website</p>
+
+        <div id="messages-container"></div>
+        <div id="no-messages">No messages received yet.</div>
+    </div>
+
+    <script>
+        async function fetchMessages() {
+            try {
+                const response = await fetch('/api/messages');
+                const messages = await response.json();
+                
+                const container = document.getElementById('messages-container');
+                const emptyState = document.getElementById('no-messages');
+
+                if (messages.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                messages.forEach(msg => {
+                    const dateObj = new Date(msg.date);
+                    const card = document.createElement('div');
+                    card.className = 'message-card';
+                    card.innerHTML = `
+                        <div class="header">
+                            <div>
+                                <div class="name">${escapeHTML(msg.name)}</div>
+                                <a href="mailto:${escapeHTML(msg.email)}" class="email">${escapeHTML(msg.email)}</a>
+                            </div>
+                            <div class="date">${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}</div>
+                        </div>
+                        <div class="body">${escapeHTML(msg.message)}</div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Error fetching messages:", error);
+                document.getElementById('messages-container').innerHTML = 
+                    "<div style='color:#f87171'>Failed to load messages. Server error.</div>";
+            }
+        }
+
+        function escapeHTML(str) {
+            if(!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag])
+            );
+        }
+
+        fetchMessages();
+    </script>
+</body>
+</html>
